@@ -1,74 +1,69 @@
 version_id,lang_code,lang_name,viable,viable_detail
-3971,abr,Abron,nt,OT❌ NT✅
-4667,ade,Adele,false,No content found
 2094,twi,Asante Twi,both,OT✅ NT✅
 2913,fat,Fante,both,OT✅ NT✅
 2914,fat,Fante,both,OT✅ NT✅
-2168,cko,Anufo,nt,OT❌ NT✅
-1731,any,Anyin,nt,OT❌ NT✅
-1982,avn,Avatime,nt,OT❌ NT✅
 2235,bud,Bassar Ntcham,both,OT✅ NT✅
-1838,bim,Bimoba,nt,OT❌ NT✅
 1748,bim,Bimoba,both,OT✅ NT✅
-2148,biv,Birifor; Southern,nt,OT❌ NT✅
-4695,biv,Birifor; Southern,false,No content found
-1751,bib,Bissa,nt,OT❌ NT✅
 2176,bwu,Buli,both,OT✅ NT✅
-437,ncu,Chumburung,nt,OT❌ NT✅
-2268,dga,Dagaare,nt,OT❌ NT✅
 4573,dga,Dagaare,both,OT✅ NT✅
 2263,dag,Dagbani,both,OT✅ NT✅
 2264,dag,Dagbani,both,OT✅ NT✅
 2265,ada,Dangme,both,OT✅ NT✅
-2322,ada,Dangme,nt,OT❌ NT✅
 2012,mzw,Deg,both,OT✅ NT✅
 1613,ewe,Ewe,both,OT✅ NT✅
 2259,ewe,Ewe,both,OT✅ NT✅
 3306,ewe,Ewe,both,OT✅ NT✅
-1175,ffm,Fulfulde; Maasina,nt,OT❌ NT✅
 3093,ffm,Fulfulde; Maasina,both,OT✅ NT✅
 2708,gaa,Ga,both,OT✅ NT✅
 2712,gaa,Ga,both,OT✅ NT✅
-1741,acd,Gikyode,nt,OT❌ NT✅
 1729,gjn,Gonja,both,OT✅ NT✅
-1499,hag,Hanga,ot,OT✅ NT❌
 71,hau,Hausa,both,OT✅ NT✅
 1614,hau,Hausa,both,OT✅ NT✅
-555,kbp,Kabiye,nt,OT❌ NT✅
 3661,xsm,Kasem,both,OT✅ NT✅
-1303,xsm,Kasem,nt,OT❌ NT✅
-1460,xon,Konkomba,nt,OT❌ NT✅
 1150,xon,Konkomba,both,OT✅ NT✅
-2421,kma,Konni,nt,OT❌ NT✅
 3752,kus,Kusaal,both,OT✅ NT✅
 2442,lef,Lelemi,both,OT✅ NT✅
-1784,maw,Mampruli,nt,OT❌ NT✅
-1836,naw,Nawuri,nt,OT❌ NT✅
-1323,gur,Ninkare,nt,OT❌ NT✅
-3194,gur,Ninkare,nt,OT❌ NT✅
-255,nko,Nkonya,nt,OT❌ NT✅
-4673,ntr,Ntrubo,false,No content found
-1795,ntr,Ntrubo,nt,OT❌ NT✅
-4674,nyb,Nyangbo,ot,OT✅ NT❌
-2989,nyb,Nyangbo,false,No content found
 2717,nzi,Nzema,both,OT✅ NT✅
-4529,nzi,Nzema,nt,OT❌ NT✅
-1978,sig,Paasaal,nt,OT❌ NT✅
 2710,sfw,Sehwi,both,OT✅ NT✅
-4630,sfw,Sehwi,nt,OT❌ NT✅
-1773,lip,Sekpele,nt,OT❌ NT✅
-1796,snw,Selee,nt,OT❌ NT✅
-4728,snw,Selee,ot,OT✅ NT❌
 2553,sil,Sisaala; Tumulung,both,OT✅ NT✅
-1738,akp,Siwu,nt,OT❌ NT✅
-4726,akp,Siwu,false,No content found
-3070,tcd,Tafi,nt,OT❌ NT✅
-1804,tpm,Tampulma,nt,OT❌ NT✅
 1384,kdh,Tem,both,OT✅ NT✅
-1752,bov,Tuwuli,nt,OT❌ NT✅
 1631,twi,Akuapem Twi,both,OT✅ NT✅
 3439,twi,Akuapem Twi,both,OT✅ NT✅
 3440,twi,Akuapem Twi,both,OT✅ NT✅
 1861,twi,Asante Twi,both,OT✅ NT✅
 1461,twi,Asante Twi,both,OT✅ NT✅
 1938,vag,Vagla,both,OT✅ NT✅
+1499,hag,Hanga,ot,OT✅ NT❌
+4674,nyb,Nyangbo,ot,OT✅ NT❌
+4728,snw,Selee,ot,OT✅ NT❌
+3971,abr,Abron,nt,OT❌ NT✅
+2168,cko,Anufo,nt,OT❌ NT✅
+1731,any,Anyin,nt,OT❌ NT✅
+1982,avn,Avatime,nt,OT❌ NT✅
+1838,bim,Bimoba,nt,OT❌ NT✅
+2148,biv,Birifor; Southern,nt,OT❌ NT✅
+1751,bib,Bissa,nt,OT❌ NT✅
+437,ncu,Chumburung,nt,OT❌ NT✅
+2268,dga,Dagaare,nt,OT❌ NT✅
+2322,ada,Dangme,nt,OT❌ NT✅
+1175,ffm,Fulfulde; Maasina,nt,OT❌ NT✅
+1741,acd,Gikyode,nt,OT❌ NT✅
+555,kbp,Kabiye,nt,OT❌ NT✅
+1303,xsm,Kasem,nt,OT❌ NT✅
+1460,xon,Konkomba,nt,OT❌ NT✅
+2421,kma,Konni,nt,OT❌ NT✅
+1784,maw,Mampruli,nt,OT❌ NT✅
+1836,naw,Nawuri,nt,OT❌ NT✅
+1323,gur,Ninkare,nt,OT❌ NT✅
+3194,gur,Ninkare,nt,OT❌ NT✅
+255,nko,Nkonya,nt,OT❌ NT✅
+1795,ntr,Ntrubo,nt,OT❌ NT✅
+4529,nzi,Nzema,nt,OT❌ NT✅
+1978,sig,Paasaal,nt,OT❌ NT✅
+4630,sfw,Sehwi,nt,OT❌ NT✅
+1773,lip,Sekpele,nt,OT❌ NT✅
+1796,snw,Selee,nt,OT❌ NT✅
+1738,akp,Siwu,nt,OT❌ NT✅
+3070,tcd,Tafi,nt,OT❌ NT✅
+1804,tpm,Tampulma,nt,OT❌ NT✅
+1752,bov,Tuwuli,nt,OT❌ NT✅
