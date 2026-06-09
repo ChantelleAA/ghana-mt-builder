@@ -543,6 +543,48 @@ def load_versions_csv(csv_path: str) -> list:
     return entries
 
 
+def get_assigned_version_ids(readme_path: str = "README.md") -> set[int]:
+    """
+    Parse the README language table and return version IDs that are already
+    assigned — i.e. have a volunteer name or a ✅ Done status.
+    """
+    assigned = set()
+    if not os.path.exists(readme_path):
+        return assigned
+
+    # Regex to extract pipe-separated table rows
+    row_re = re.compile(r"^\s*\|(.+)\|\s*$")
+
+    with open(readme_path, encoding="utf-8") as f:
+        for line in f:
+            m = row_re.match(line)
+            if not m:
+                continue
+            cols = [c.strip() for c in m.group(1).split("|")]
+            # Table columns: Language | Code | Version IDs | Coverage | Volunteer | Status
+            if len(cols) < 6:
+                continue
+            volunteer_col = cols[4]
+            status_col    = cols[5]
+
+            is_done      = "✅" in status_col or "done" in status_col.lower()
+            has_volunteer = (
+                volunteer_col
+                and volunteer_col != "—"
+                and volunteer_col != "-"
+                and volunteer_col.strip() != ""
+            )
+
+            if not (is_done or has_volunteer):
+                continue
+
+            # Extract all version IDs from the Version IDs column (cols[2])
+            for vid in re.findall(r"\d+", cols[2]):
+                assigned.add(int(vid))
+
+    return assigned
+
+
 # ─────────────────────────────────────────────
 # INTERACTIVE LANGUAGE SELECTION
 # ─────────────────────────────────────────────
@@ -550,18 +592,30 @@ def load_versions_csv(csv_path: str) -> list:
 def prompt_language_selection(entries: list) -> list:
     """
     Display a numbered list of available languages and prompt the user
-    to select one or more. Returns the chosen subset of entries.
+    to select one or more. Versions already assigned in README.md
+    (volunteer named or marked Done) are hidden from the list.
     Supports single picks, comma-separated picks, and ranges (e.g. 1-3).
     """
+    assigned_ids = get_assigned_version_ids()
+
+    skipped = [(vid, lc, ln, ab) for (vid, lc, ln, ab) in entries if vid in assigned_ids]
+    available = [(vid, lc, ln, ab) for (vid, lc, ln, ab) in entries if vid not in assigned_ids]
+
     print("\n" + "=" * 60)
-    print("  Available Languages")
+    print("  Available Languages  (unassigned)")
     print("=" * 60)
+    if not available:
+        print("  All languages are already assigned in README.md.")
+        return []
     print(f"  {'#':<5} {'Language':<30} {'Code':<10} {'Version ID'}")
     print(f"  {'-'*5} {'-'*30} {'-'*10} {'-'*10}")
-    for i, (version_num, lang_code, lang_name, abbr) in enumerate(entries, start=1):
+    for i, (version_num, lang_code, lang_name, abbr) in enumerate(available, start=1):
         abbr_str = f" ({abbr})" if abbr else ""
         print(f"  {i:<5} {lang_name + abbr_str:<30} {lang_code:<10} {version_num}")
     print("=" * 60)
+    if skipped:
+        print(f"  ℹ️  {len(skipped)} version(s) hidden — already assigned or done in README.md")
+    entries = available  # selection operates only on the unassigned list
     print("\n  Enter number(s) to select — examples:")
     print("    3          → pick language #3")
     print("    1,4,7      → pick languages #1, #4, and #7")
