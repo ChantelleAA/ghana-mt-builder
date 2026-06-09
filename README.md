@@ -138,7 +138,7 @@ The table below lists all languages confirmed to have content on YouVersion and 
 |---|---|---|---|---|---|
 | Akuapem Twi | twi | 1631, 3439, 3440 | OT + NT | — | Not started |
 | Asante Twi | twi | 1461, 1861, 2094 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
-| Bassar Ntcham | bud | 2235 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
+| Bassar Ntcham | bud | 2235 | OT + NT | — | Not started |
 | Bimoba | bim | 1748 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
 | Buli | bwu | 2176 | OT + NT | — | Not started |
 | Dagaare | dga | 4573 | OT + NT | — | Not started |
