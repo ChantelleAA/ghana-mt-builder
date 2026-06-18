@@ -1,5 +1,15 @@
-bible_parallel_text_datasets/progress.json
-bible_parallel_text_datasets/progress.json.tmp
-bible_parallel_text_datasets/testament_status.json
+# Corpus data is hosted on HuggingFace (ghananlpcommunity/ghana-corpus) and
+# downloaded on demand, so it is not tracked in git. A local copy here is used
+# directly when present (e.g. on a maintainer's machine).
+bible_parallel_text_datasets/
 .chrome_confirmed
+
+# Corpora exported by ghana_corpus.py (regenerate any time from the cached data)
+corpora/
+*_parallel.csv
+*_monolingual.csv
+
+# Python
+__pycache__/
+*.pyc
 

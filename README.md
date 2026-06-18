@@ -1,48 +1,163 @@
 # Ghana Corpus Builder
 
-A toolkit for building parallel text datasets from Ghanaian Bible translations on [YouVersion](https://www.bible.com). It automatically pairs local-language Bible verses with their English equivalents and saves the results as clean CSVs ready for machine translation training and NLP research.
+A toolkit and small Python library for **retrieving parallel and monolingual
+text corpora for Ghanaian languages**. Pick any Ghanaian language and pair it
+with English, with another Ghanaian language, or with one of several other
+world languages — or pull a monolingual corpus for a single language. Output is
+clean, sentence-aligned CSV, ready for machine-translation training and NLP
+research.
+
+The corpora are hosted on HuggingFace at
+[`ghananlpcommunity/ghana-corpus`](https://huggingface.co/datasets/ghananlpcommunity/ghana-corpus).
+The library downloads only the files you actually use and caches them locally,
+so the repository itself stays lightweight. New languages pushed to the dataset
+are picked up automatically — no code change or update needed.
 
 ---
 
-## What it does
+## What you can build
 
-YouVersion hosts hundreds of Bible translations, including many Ghanaian languages — Twi, Ga, Ewe, Dagbani, Fante, and more. Each translation is aligned verse-by-verse with a common reference, which makes Bible text one of the best naturally-occurring sources of parallel sentences for low-resource African languages.
+| Corpus type | Example | Notes |
+|---|---|---|
+| Ghanaian ↔ English | Twi ↔ English | English ships cached; the default target |
+| Ghanaian ↔ Ghanaian | Twi ↔ Ewe, Ga ↔ Dagbani | align two local languages directly |
+| Ghanaian ↔ other language | Twi ↔ French, Ewe ↔ Arabic | French, Spanish, Portuguese, German, Italian, Arabic, Chinese, Swahili are cached |
+| Monolingual | all Twi sentences | any single language |
 
-This project scrapes those verse pairs, cleans the text, and saves them as structured CSV files. The end result is a collection of sentence-level `(local language, English)` pairs that can be used directly to train or fine-tune machine translation models.
+Every language's text is aligned on a shared verse key, so **any** two
+languages can be turned into a parallel corpus by a simple join. That is what
+makes Ghanaian ↔ Ghanaian and Ghanaian ↔ other-language pairs possible.
+
+---
 
 ## Quick start
 
-### Requirements
-
-- Python 3.10 or later
-- Google Chrome installed
-
-> All Python dependencies are installed automatically on first run. You do not need to run `pip install` yourself.
-
-### Clone and run
-
 ```bash
-git clone https://github.com/GhanaNLP/ghana-mt-builder.git
-cd ghana-mt-builder
-python youversion_parallel_text_builder.py
+git clone https://github.com/GhanaNLP/ghana-corpus-builder.git
+cd ghana-corpus-builder
 ```
 
-The script will:
-1. Ask you to confirm you have Chrome installed, as this is required for the scraping to work.
-2. Install any required packages in the background
-3. Prompt you for a version ID - This is the version ID you received from Ghana NLP after accepting to participate in this project.
+Requires Python 3.10+ and `huggingface_hub` (used to download the data the
+first time you reference a language):
 
-### Resuming an interrupted run
+```bash
+pip install huggingface_hub
+```
 
-The scraper tracks progress in `bible_parallel_text_datasets/progress.json`. If a run is interrupted for any reason, just run the same command again and select the same version ID — already-completed chapters are skipped automatically.
+Downloaded files are cached, so each language is only fetched once. The dataset
+is public — no HuggingFace login is needed to read it.
 
-> `progress.json` and `testament_status.json` are listed in `.gitignore` and will not be committed to the repository.
+### List what's available
+
+```bash
+python ghana_corpus.py --list
+```
+
+### Build a corpus for one language (the common case)
+
+```bash
+# Twi ↔ English (English is the default target)
+python ghana_corpus.py --source twi
+
+# Twi ↔ Ewe (two Ghanaian languages)
+python ghana_corpus.py --source twi --target ewe
+
+# Twi ↔ French
+python ghana_corpus.py --source twi --target fr
+
+# Monolingual Twi
+python ghana_corpus.py --source twi --monolingual
+```
+
+Each writes a CSV named after the languages (e.g. `twi_en_parallel.csv`,
+`twi_monolingual.csv`). Use `--out PATH` to choose the filename.
+
+### Limit the number of samples
+
+```bash
+# first 5,000 Twi–English pairs (in scripture order, deterministic)
+python ghana_corpus.py --source twi --limit 5000
+
+# a random 5,000-pair sample (reproducible via --seed)
+python ghana_corpus.py --source twi --limit 5000 --sample --seed 42
+```
+
+### Build for many languages at once
+
+`--source` accepts a comma-separated list or the keyword `all`. With more than
+one source, one file per language is written into `--out-dir` (default
+`corpora/`).
+
+```bash
+# every Ghanaian language paired with English, 10k samples each
+python ghana_corpus.py --source all --limit 10000 --out-dir corpora/
+
+# a selected set, paired with French
+python ghana_corpus.py --source twi,ewe,gaa,dag --target fr --out-dir corpora/
+
+# monolingual corpora for every Ghanaian language
+python ghana_corpus.py --source all --monolingual --out-dir corpora/
+```
+
+Run `python ghana_corpus.py` with no arguments for an interactive prompt.
+
+### Use it as a library
+
+```python
+import ghana_corpus as gc
+
+gc.list_languages()                              # (ghanaian, reference) language lists
+rows  = gc.parallel("twi", "ewe", limit=1000)    # [(verse_key, twi, ewe), ...]
+rows  = gc.parallel("twi")                        # twi ↔ English
+sents = gc.monolingual("twi", limit=500, sample=True)
+
+gc.write_parallel_csv("twi", "fr", "twi_fr.csv", limit=2000)
+gc.write_monolingual_csv("twi", "twi.csv")
+
+# one file per language
+gc.build_batch(gc.all_ghanaian_codes(), target="en",
+               limit=10000, out_dir="corpora/")
+```
+
+Languages are referenced by code (`twi`, `ewe`, `fr`) or by name
+(`"Asante Twi"`, `"French"`).
 
 ---
 
-## Languages covered
+## Available languages
 
-The table below lists all languages confirmed to have content on YouVersion and currently tracked by this project. Coverage was verified by probing Old Testament and New Testament probe verses for each version before scraping.
+**Ghanaian languages** are listed in the coverage table below. **Other
+("reference") languages** that can be used as the non-Ghanaian side of a
+parallel corpus:
+
+| Code | Language |
+|---|---|
+| `en` | English |
+| `fr` | French |
+| `es` | Spanish |
+| `pt` | Portuguese |
+| `de` | German |
+| `it` | Italian |
+| `ar` | Arabic |
+| `zh` | Chinese |
+| `sw` | Swahili |
+
+### Adding more reference languages
+
+The reference set is extensible — no code changes required:
+
+1. Add a row to `reference_languages.csv` with the language code, name, a
+   YouVersion numeric version id (a full-Bible version works best), and a
+   cache-file path.
+2. Run `python scripts/fetch_reference_language.py <code>` to cache it locally.
+3. It is now selectable as a parallel candidate in `ghana_corpus.py`.
+
+---
+
+## Ghanaian language coverage & contributing
+
+The table lists Ghanaian languages tracked by this project, the YouVersion
+versions they were built from, and the volunteers who curated them.
 
 | Language | Code | Version IDs | Coverage | Volunteer | Status |
 |---|---|---|---|---|---|
@@ -103,16 +218,61 @@ The table below lists all languages confirmed to have content on YouVersion and 
 | Tampulma | tpm | 1804 | NT only | — | Not started |
 | Tuwuli | bov | 1752 | NT only | — | Not started |
 
-Any language with a YouVersion Bible translation can be added by including its version ID in the versions CSV. To volunteer for a language, open an issue or reach out to the Ghana NLP Community.
+To volunteer for a language, open an issue or reach out to the Ghana NLP
+Community.
+
+### Maintainer tooling (building the datasets)
+
+The Ghanaian datasets in `bible_parallel_text_datasets/` were produced by the
+scripts in this repo and are committed for direct use — **regular users do not
+need to run them.** For maintainers and volunteers extending coverage:
+
+- `youversion_parallel_text_builder.py` — builds a Ghanaian-language dataset
+  from a YouVersion version id.
+- `scripts/scan_viable_versions.py` — probes which versions actually have
+  content before scraping.
+- `scripts/fetch_reference_language.py` — caches a reference language (see
+  *Adding more reference languages* above).
+- `scripts/push_dataset_to_hf.py` — publishes data to the
+  `ghananlpcommunity/ghana-corpus` dataset. By default it **appends only new
+  files** (run `--dry-run` to preview, `--sync` to also re-upload changed
+  files). Once a file is on HuggingFace, `ghana_corpus.py` picks it up
+  automatically on its next run.
+- `scripts/build_and_push_parallel_dataset.py` — merges and publishes a
+  curated dataset to HuggingFace (reads `HF_TOKEN` from the environment).
+
+Typical workflow for extending coverage:
+
+```bash
+# build a new Ghanaian dataset (or fetch a new reference language), then:
+python scripts/push_dataset_to_hf.py --dry-run   # see what's new
+python scripts/push_dataset_to_hf.py             # append it to HF
+```
+
+---
+
+## Data source
+
+Verse text comes from public **Bible translations**, which are among the best
+naturally-occurring sources of sentence-aligned parallel text for low-resource
+languages.
+
+> The non-English reference languages were retrieved from
+> [YouVersion](https://www.bible.com) (bible.com). Please review YouVersion's
+> terms of service before publishing or redistributing derived data.
 
 ---
 
 ## License
 
-Dataset content is sourced from YouVersion. Please review YouVersion's terms of service before publishing or distributing scraped data. Code in this repository is released under the MIT License.
+Code in this repository is released under the MIT License. Dataset content is
+derived from third-party Bible translations; review the source's terms before
+publishing or distributing.
 
 ---
 
 ## Acknowledgements
 
-Built by the [Ghana NLP Community](https://huggingface.co/ghananlpcommunity). If you use this data in research, please cite the community and acknowledge YouVersion as the source.
+Built by the [Ghana NLP Community](https://huggingface.co/ghananlpcommunity).
+If you use this data in research, please cite the community and acknowledge the
+underlying Bible-translation sources.

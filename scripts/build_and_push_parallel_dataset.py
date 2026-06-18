@@ -37,7 +37,7 @@ LANG_CSV = "Asante_Twi_twi"
 # Files in BIBLE_ROOT to skip when scanning all CSVs
 SKIP_CSVS = {"english_cache.csv"}
 
-HF_TOKEN   = "HF_TOKEN_REDACTED"
+HF_TOKEN   = os.environ.get("HF_TOKEN")  # export HF_TOKEN=... before running
 HF_REPO_ID = "ghananlpcommunity/twi-english-parallel-text"
 
 README_TEXT = """\
@@ -217,6 +217,8 @@ def merge_datasets(bible_df: pd.DataFrame, existing_df: pd.DataFrame) -> pd.Data
 # ── Step 4: Push to HuggingFace ──────────────────────────────────────────────
 
 def push_to_hf(df: pd.DataFrame, repo_id: str, token: str):
+    if not token:
+        raise SystemExit("HF_TOKEN is not set. Run: export HF_TOKEN=hf_your_token")
     print(f"\n🚀 Logging in to HuggingFace...")
     login(token=token)
     api = HfApi()
