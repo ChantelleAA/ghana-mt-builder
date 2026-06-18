@@ -204,9 +204,9 @@ versions they were built from, and the volunteers who curated them.
 | Avatime | avn | 1982 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
 | Bimoba | bim | 1838 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
 | Birifor; Southern | biv | 2148 | NT only | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
-| Bissa | bib | 1751 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
-| Chumburung | ncu | 437 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
-| Dagaare | dga | 2268 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
+| Bissa | bib | 1751 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Chumburung | ncu | 437 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Dagaare | dga | 2268 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
 | Dangme | ada | 2322 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
 | Fulfulde; Maasina | ffm | 1175 | NT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
 | Gikyode | acd | 1741 | NT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
