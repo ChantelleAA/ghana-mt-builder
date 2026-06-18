@@ -68,9 +68,9 @@ The table below lists all languages confirmed to have content on YouVersion and 
 | Nzema | nzi | 2717 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
 | Sehwi | sfw | 2710 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
 | Sisaala; Tumulung | sil | 2553 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
-| Tem | kdh | 1384 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
-| Vagla | vag | 1938 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
-| Abron | abr | 3971 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Tem | kdh | 1384 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
+| Vagla | vag | 1938 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
+| Abron | abr | 3971 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
 | Anufo | cko | 2168 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
 | Anyin | any | 1731 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
 | Avatime | avn | 1982 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
