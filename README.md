@@ -144,13 +144,24 @@ parallel corpus:
 
 ### Adding more reference languages
 
-The reference set is extensible — no code changes required:
+The reference set is fully self-describing — no index and no code changes. Each
+cache is stored as `reference_caches/{Name}_{code}_v{id}.csv`, and the library
+learns the language straight from that filename on HuggingFace.
 
-1. Add a row to `reference_languages.csv` with the language code, name, a
-   YouVersion numeric version id (a full-Bible version works best), and a
-   cache-file path.
-2. Run `python scripts/fetch_reference_language.py <code>` to cache it locally.
-3. It is now selectable as a parallel candidate in `ghana_corpus.py`.
+To add one, find its YouVersion numeric version id (a full-Bible version works
+best), then:
+
+```bash
+# 1. cache it locally
+python scripts/fetch_reference_language.py --code ha --name Hausa --version 380
+
+# 2. push it to HuggingFace
+python scripts/push_dataset_to_hf.py
+```
+
+That's it — it's immediately selectable in `ghana_corpus.py`, with nothing to
+commit. (`reference_languages.csv` is just an optional catalog of common
+languages so they can be re-fetched by code; the library never reads it.)
 
 ---
 

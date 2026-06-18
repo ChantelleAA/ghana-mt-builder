@@ -9,24 +9,32 @@ Ghanaian language CSVs and english_cache.csv.  Because everything shares that
 key, the retrieval library (ghana_corpus.py) can align ANY two languages by a
 simple join — no re-scraping needed at retrieval time.
 
-Reference languages live in `reference_languages.csv`:
+Caches are self-describing: each is written as
 
-    code,name,version_id,abbr,cache_file
-    fr,French,93,LSG,reference_caches/fr.csv
-    ...
+    reference_caches/{Name}_{code}_v{version_id}.csv
+
+so the library (ghana_corpus.py) learns the language straight from the filename
+on HuggingFace — there is NO index to keep in sync.
 
 ADDING A NEW REFERENCE LANGUAGE
 -------------------------------
   1. Find its YouVersion numeric version id (a full-Bible version works best).
-  2. Add a row to reference_languages.csv.
-  3. Run:  python scripts/fetch_reference_language.py <code>
-  4. It is now selectable as a parallel candidate in ghana_corpus.py — no
-     other code changes required.
+  2. Cache it:
+       python scripts/fetch_reference_language.py --code ha --name Hausa --version 380
+  3. Push it:
+       python scripts/push_dataset_to_hf.py
+  4. Done — it is now selectable in ghana_corpus.py. No code or index edits.
+
+`reference_languages.csv` is an OPTIONAL catalog of common languages so they can
+be (re)fetched by code; the library does not read it.
 
 USAGE
 -----
-  python scripts/fetch_reference_language.py            # fetch every uncached language
-  python scripts/fetch_reference_language.py fr es de   # fetch specific codes
+  # explicit (no catalog needed):
+  python scripts/fetch_reference_language.py --code ha --name Hausa --version 380
+  # from the optional catalog:
+  python scripts/fetch_reference_language.py            # fetch every uncached catalog language
+  python scripts/fetch_reference_language.py fr es de   # fetch specific catalog codes
   python scripts/fetch_reference_language.py --force fr  # re-fetch even if cached
 
 Source: the verse text comes from public Bible translations on YouVersion
@@ -185,8 +193,27 @@ def load_reference_registry() -> list[dict]:
         return [row for row in csv.DictReader(f)]
 
 
-def resolve_cache_path(cache_file: str) -> str:
-    return os.path.join(OUTPUT_ROOT, cache_file)
+def compute_cache_path(name: str, code: str, version_num: int) -> str:
+    """Self-describing path: reference_caches/{Name}_{code}_v{id}.csv.
+
+    The library identifies the language straight from this filename, so no
+    index file needs to be kept in sync — caching and pushing the file is
+    enough to make the language available.
+    """
+    fname = f"{name.replace(' ', '_')}_{code}_v{version_num}.csv"
+    return os.path.join(OUTPUT_ROOT, "reference_caches", fname)
+
+
+def find_existing_cache(code: str, version_num: int) -> str | None:
+    """Return the path of an already-cached file for this code+version, if any."""
+    ref_dir = os.path.join(OUTPUT_ROOT, "reference_caches")
+    if not os.path.isdir(ref_dir):
+        return None
+    suffix = f"_{code}_v{version_num}.csv"
+    for fn in os.listdir(ref_dir):
+        if fn.endswith(suffix):
+            return os.path.join(ref_dir, fn)
+    return None
 
 
 # ─────────────────────────────────────────────
@@ -290,43 +317,68 @@ def fetch_one_language(code: str, name: str, version_num: int,
 # MAIN
 # ─────────────────────────────────────────────
 
+def _opt(argv, name):
+    """Return the value following --name, or None."""
+    if name in argv:
+        i = argv.index(name)
+        if i + 1 < len(argv):
+            return argv[i + 1]
+    return None
+
+
 def main():
     argv = sys.argv[1:]
     force = "--force" in argv
-    codes = [a for a in argv if not a.startswith("--")]
 
-    registry = load_reference_registry()
-    by_code = {r["code"].strip(): r for r in registry}
-
-    if codes:
-        selected = []
-        for c in codes:
-            if c not in by_code:
-                sys.exit(f"Unknown reference code '{c}'. "
-                         f"Known: {', '.join(by_code)}")
-            selected.append(by_code[c])
+    # Mode 1: fully explicit — no catalog needed.
+    #   fetch_reference_language.py --code ha --name Hausa --version 380
+    code = _opt(argv, "--code")
+    name = _opt(argv, "--name")
+    version = _opt(argv, "--version")
+    if code and version:
+        if not name:
+            name = code.upper()
+        selected = [{"code": code, "name": name, "version_id": version}]
     else:
-        # Default: every language whose cache file does not yet exist.
-        selected = [r for r in registry
-                    if not os.path.exists(resolve_cache_path(r["cache_file"]))]
-        if not selected:
-            print("All reference languages are already cached. "
-                  "Use --force <code> to re-fetch.")
-            return
+        # Mode 2: from the catalog (reference_languages.csv) for convenience.
+        registry = load_reference_registry()
+        by_code = {r["code"].strip(): r for r in registry
+                   if r["code"].strip() != "en"}   # English isn't fetched here
+        positional = [a for a in argv if not a.startswith("--")]
+        if positional:
+            selected = []
+            for c in positional:
+                if c not in by_code:
+                    sys.exit(f"Unknown reference code '{c}'. "
+                             f"Known: {', '.join(by_code)}\n"
+                             f"Or pass it explicitly: "
+                             f"--code {c} --name <Name> --version <id>")
+                selected.append(by_code[c])
+        else:
+            # Default: every catalog language not yet cached.
+            selected = [r for r in by_code.values()
+                        if not find_existing_cache(r["code"].strip(),
+                                                   int(r["version_id"]))]
+            if not selected:
+                print("All catalog reference languages are already cached. "
+                      "Use --force <code> to re-fetch.")
+                return
 
     print(f"Fetching {len(selected)} reference language(s): "
           f"{', '.join(r['code'] for r in selected)}")
 
     for r in selected:
+        c = r["code"].strip()
+        nm = r["name"].strip()
+        vid = int(r["version_id"])
         fetch_one_language(
-            code=r["code"].strip(),
-            name=r["name"].strip(),
-            version_num=int(r["version_id"]),
-            cache_path=resolve_cache_path(r["cache_file"].strip()),
+            code=c, name=nm, version_num=vid,
+            cache_path=compute_cache_path(nm, c, vid),
             force=force,
         )
 
-    print("\nDone. New reference languages are now available in ghana_corpus.py.")
+    print("\nDone. Push to HuggingFace (scripts/push_dataset_to_hf.py) and the "
+          "language is immediately available in ghana_corpus.py.")
 
 
 if __name__ == "__main__":

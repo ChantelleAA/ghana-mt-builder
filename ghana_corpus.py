@@ -53,7 +53,6 @@ csv.field_size_limit(10_000_000)
 
 REPO_ROOT      = os.path.dirname(os.path.abspath(__file__))
 DATA_ROOT      = os.path.join(REPO_ROOT, "bible_parallel_text_datasets")
-REFERENCE_CSV  = os.path.join(REPO_ROOT, "reference_languages.csv")
 
 # The data lives in a HuggingFace dataset; files are downloaded and cached on
 # demand. If a copy is already present under DATA_ROOT (e.g. on a maintainer's
@@ -155,53 +154,61 @@ def data_path(rel: str) -> str:
 class Language:
     """A retrievable language: a code, a display name, and where its text lives."""
 
-    def __init__(self, code, name, kind, files=None, cache_file=None,
-                 text_column="text"):
+    def __init__(self, code, name, kind, files=None, text_column="text"):
         self.code = code
         self.name = name
         self.kind = kind                  # "ghanaian" | "reference"
-        self.files = files or []          # repo-relative dataset CSVs (ghanaian)
-        self.cache_file = cache_file      # repo-relative cache CSV (reference)
+        self.files = files or []          # repo-relative dataset CSV(s)
         self.text_column = text_column    # which column holds the text
 
     def __repr__(self):
         return f"<Language {self.code} '{self.name}' ({self.kind})>"
 
 
-def _discover_ghanaian() -> dict[str, Language]:
-    """Group every Ghanaian dataset CSV by language code (merging versions)."""
+def _group_by_filename(rels, kind, text_column) -> dict[str, Language]:
+    """Build {code: Language} from `{Name}_{code}_v{id}.csv` filenames.
+
+    Files sharing a code are merged (e.g. multiple Bible versions of one
+    language). The language name and code come straight from the filename, so
+    nothing else needs to know the file exists — discovery is self-describing.
+    """
     langs: dict[str, Language] = {}
-    for rel in sorted(dataset_files()):
+    for rel in sorted(rels):
         fname = rel.split("/")[-1]
-        if "/" in rel or fname in _NON_LANG_FILES:
-            continue  # reference caches live in a subdir; skip non-lang files
         m = _LANG_FILE_RE.match(fname)
         if not m:
             continue
         code = m.group("code")
         name = m.group("name").replace("_", " ")
         if code not in langs:
-            langs[code] = Language(code, name, "ghanaian",
-                                   files=[], text_column="local")
+            langs[code] = Language(code, name, kind, files=[],
+                                   text_column=text_column)
         if name not in langs[code].name:
             langs[code].name += f" / {name}"
         langs[code].files.append(rel)
     return langs
 
 
-def _load_reference_registry() -> dict[str, Language]:
-    langs: dict[str, Language] = {}
-    if not os.path.exists(REFERENCE_CSV):
-        return langs
-    with open(REFERENCE_CSV, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            code = row["code"].strip()
-            cache_file = row["cache_file"].strip()
-            # english_cache.csv stores its text in the "eng" column; the
-            # reference_caches/*.csv files use "text".
-            text_col = "eng" if os.path.basename(cache_file) == "english_cache.csv" else "text"
-            langs[code] = Language(code, row["name"].strip(), "reference",
-                                   cache_file=cache_file, text_column=text_col)
+def _discover_ghanaian() -> dict[str, Language]:
+    """Ghanaian datasets: top-level `{Name}_{code}_v{id}.csv` files."""
+    rels = [r for r in dataset_files()
+            if "/" not in r and r.split("/")[-1] not in _NON_LANG_FILES]
+    return _group_by_filename(rels, "ghanaian", "local")
+
+
+def _discover_reference() -> dict[str, Language]:
+    """Reference languages: self-describing from filenames, no index needed.
+
+    `reference_caches/{Name}_{code}_v{id}.csv` files are discovered exactly like
+    Ghanaian ones. English ships as the fixed `english_cache.csv` (built
+    alongside the Ghanaian datasets) and is registered as a special case.
+    """
+    files = dataset_files()
+    rels = [r for r in files if r.startswith("reference_caches/")]
+    langs = _group_by_filename(rels, "reference", "text")
+    if "english_cache.csv" in files:
+        langs["en"] = Language("en", "English", "reference",
+                               files=["english_cache.csv"], text_column="eng")
     return langs
 
 
@@ -213,7 +220,7 @@ def registry() -> dict[str, Language]:
     global _REGISTRY
     if _REGISTRY is None:
         reg = _discover_ghanaian()
-        reg.update(_load_reference_registry())   # reference codes won't clash
+        reg.update(_discover_reference())   # reference codes won't clash
         _REGISTRY = reg
     return _REGISTRY
 
@@ -263,12 +270,7 @@ def _load_verses(lang: Language) -> dict[str, set[str]]:
     per verse so that the union is available for alignment.
     """
     verses: dict[str, set[str]] = {}
-    if lang.kind == "ghanaian":
-        sources = lang.files
-    else:
-        sources = [lang.cache_file]
-
-    for rel in sources:
+    for rel in lang.files:
         path = data_path(rel)
         with open(path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
