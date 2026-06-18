@@ -227,7 +227,8 @@ def fetch_one_language(code: str, name: str, version_num: int,
     write_lock = threading.Lock()
     write_header = not os.path.exists(cache_path)
     out = open(cache_path, "a", newline="", encoding="utf-8")
-    writer = csv.DictWriter(out, fieldnames=["verse_key", "text"])
+    writer = csv.DictWriter(
+        out, fieldnames=["verse_key", "version_id", "lang_code", "text"])
     if write_header:
         writer.writeheader()
 
@@ -255,7 +256,8 @@ def fetch_one_language(code: str, name: str, version_num: int,
                 continue
             cleaned = clean_text(raw) if raw.strip() else ""
             if cleaned:
-                rows.append({"verse_key": key, "text": cleaned})
+                rows.append({"verse_key": key, "version_id": version_num,
+                             "lang_code": code, "text": cleaned})
         if rows:
             with write_lock:
                 writer.writerows(rows)
