@@ -159,6 +159,8 @@ The reference set is extensible — no code changes required:
 The table lists Ghanaian languages tracked by this project, the YouVersion
 versions they were built from, and the volunteers who curated them.
 
+# Language Assignments
+
 | Language | Code | Version IDs | Coverage | Volunteer | Status |
 |---|---|---|---|---|---|
 | Akuapem Twi | twi | 1631, 3439, 3440 | OT + NT | [Jonathan Asiamah](https://www.linkedin.com/in/jonathan-asiamah-4639a5147/) | Assigned |
@@ -207,16 +209,16 @@ versions they were built from, and the volunteers who curated them.
 | Ninkare | gur | 1323, 3194 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
 | Nkonya | nko | 255 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
 | Ntrubo | ntr | 1795 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
-| Nyangbo | nyb | 4674 | OT only | — | Not started |
-| Nzema | nzi | 4529 | NT only | — | Not started |
-| Paasaal | sig | 1978 | NT only | — | Not started |
-| Sehwi | sfw | 4630 | NT only | — | Not started |
-| Selee | snw | 1796, 4728 | NT / OT | — | Not started |
-| Sekpele | lip | 1773 | NT only | — | Not started |
-| Siwu | akp | 1738 | NT only | — | Not started |
-| Tafi | tcd | 3070 | NT only | — | Not started |
-| Tampulma | tpm | 1804 | NT only | — | Not started |
-| Tuwuli | bov | 1752 | NT only | — | Not started |
+| Nyangbo | nyb | 4674 | OT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Nzema | nzi | 4529 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Paasaal | sig | 1978 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Sehwi | sfw | 4630 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Selee | snw | 1796, 4728 | NT / OT | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Sekpele | lip | 1773 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Siwu | akp | 1738 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tafi | tcd | 3070 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tampulma | tpm | 1804 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tuwuli | bov | 1752 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
 
 To volunteer for a language, open an issue or reach out to the Ghana NLP
 Community.
