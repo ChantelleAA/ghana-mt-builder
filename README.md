@@ -1,48 +1,176 @@
-# Ghana Machine Translation Parallel Corpus Builder
+# Ghana Corpus Builder
 
-A toolkit for building parallel text datasets from Ghanaian Bible translations on [YouVersion](https://www.bible.com). It automatically pairs local-language Bible verses with their English equivalents and saves the results as clean CSVs ready for machine translation training and NLP research.
+A toolkit and small Python library for **retrieving parallel and monolingual
+text corpora for Ghanaian languages**. Pick any Ghanaian language and pair it
+with English, with another Ghanaian language, or with one of several other
+world languages — or pull a monolingual corpus for a single language. Output is
+clean, sentence-aligned CSV, ready for machine-translation training and NLP
+research.
+
+The corpora are hosted on HuggingFace at
+[`ghananlpcommunity/ghana-corpus`](https://huggingface.co/datasets/ghananlpcommunity/ghana-corpus).
+The library downloads only the files you actually use and caches them locally,
+so the repository itself stays lightweight. New languages pushed to the dataset
+are picked up automatically — no code change or update needed.
 
 ---
 
-## What it does
+## What you can build
 
-YouVersion hosts hundreds of Bible translations, including many Ghanaian languages — Twi, Ga, Ewe, Dagbani, Fante, and more. Each translation is aligned verse-by-verse with a common reference, which makes Bible text one of the best naturally-occurring sources of parallel sentences for low-resource African languages.
+| Corpus type | Example | Notes |
+|---|---|---|
+| Ghanaian ↔ English | Twi ↔ English | English ships cached; the default target |
+| Ghanaian ↔ Ghanaian | Twi ↔ Ewe, Ga ↔ Dagbani | align two local languages directly |
+| Ghanaian ↔ other language | Twi ↔ French, Ewe ↔ Arabic | French, Spanish, Portuguese, German, Italian, Arabic, Chinese, Swahili are cached |
+| Monolingual | all Twi sentences | any single language |
 
-This project scrapes those verse pairs, cleans the text, and saves them as structured CSV files. The end result is a collection of sentence-level `(local language, English)` pairs that can be used directly to train or fine-tune machine translation models.
+Every language's text is aligned on a shared verse key, so **any** two
+languages can be turned into a parallel corpus by a simple join. That is what
+makes Ghanaian ↔ Ghanaian and Ghanaian ↔ other-language pairs possible.
+
+---
 
 ## Quick start
 
-### Requirements
-
-- Python 3.10 or later
-- Google Chrome installed
-
-> All Python dependencies are installed automatically on first run. You do not need to run `pip install` yourself.
-
-### Clone and run
-
 ```bash
-git clone https://github.com/GhanaNLP/ghana-mt-builder.git
-cd ghana-mt-builder
-python youversion_parallel_text_builder.py
+git clone https://github.com/GhanaNLP/ghana-corpus-builder.git
+cd ghana-corpus-builder
 ```
 
-The script will:
-1. Ask you to confirm you have Chrome installed, as this is required for the scraping to work.
-2. Install any required packages in the background
-3. Prompt you for a version ID - This is the version ID you received from Ghana NLP after accepting to participate in this project.
+Requires Python 3.10+ and `huggingface_hub` (used to download the data the
+first time you reference a language):
 
-### Resuming an interrupted run
+```bash
+pip install huggingface_hub
+```
 
-The scraper tracks progress in `bible_parallel_text_datasets/progress.json`. If a run is interrupted for any reason, just run the same command again and select the same version ID — already-completed chapters are skipped automatically.
+Downloaded files are cached, so each language is only fetched once. The dataset
+is public — no HuggingFace login is needed to read it.
 
-> `progress.json` and `testament_status.json` are listed in `.gitignore` and will not be committed to the repository.
+### List what's available
+
+```bash
+python ghana_corpus.py --list
+```
+
+### Build a corpus for one language (the common case)
+
+```bash
+# Twi ↔ English (English is the default target)
+python ghana_corpus.py --source twi
+
+# Twi ↔ Ewe (two Ghanaian languages)
+python ghana_corpus.py --source twi --target ewe
+
+# Twi ↔ French
+python ghana_corpus.py --source twi --target fr
+
+# Monolingual Twi
+python ghana_corpus.py --source twi --monolingual
+```
+
+Each writes a CSV named after the languages (e.g. `twi_en_parallel.csv`,
+`twi_monolingual.csv`). Use `--out PATH` to choose the filename.
+
+### Limit the number of samples
+
+```bash
+# first 5,000 Twi–English pairs (in scripture order, deterministic)
+python ghana_corpus.py --source twi --limit 5000
+
+# a random 5,000-pair sample (reproducible via --seed)
+python ghana_corpus.py --source twi --limit 5000 --sample --seed 42
+```
+
+### Build for many languages at once
+
+`--source` accepts a comma-separated list or the keyword `all`. With more than
+one source, one file per language is written into `--out-dir` (default
+`corpora/`).
+
+```bash
+# every Ghanaian language paired with English, 10k samples each
+python ghana_corpus.py --source all --limit 10000 --out-dir corpora/
+
+# a selected set, paired with French
+python ghana_corpus.py --source twi,ewe,gaa,dag --target fr --out-dir corpora/
+
+# monolingual corpora for every Ghanaian language
+python ghana_corpus.py --source all --monolingual --out-dir corpora/
+```
+
+Run `python ghana_corpus.py` with no arguments for an interactive prompt.
+
+### Use it as a library
+
+```python
+import ghana_corpus as gc
+
+gc.list_languages()                              # (ghanaian, reference) language lists
+rows  = gc.parallel("twi", "ewe", limit=1000)    # [(verse_key, twi, ewe), ...]
+rows  = gc.parallel("twi")                        # twi ↔ English
+sents = gc.monolingual("twi", limit=500, sample=True)
+
+gc.write_parallel_csv("twi", "fr", "twi_fr.csv", limit=2000)
+gc.write_monolingual_csv("twi", "twi.csv")
+
+# one file per language
+gc.build_batch(gc.all_ghanaian_codes(), target="en",
+               limit=10000, out_dir="corpora/")
+```
+
+Languages are referenced by code (`twi`, `ewe`, `fr`) or by name
+(`"Asante Twi"`, `"French"`).
 
 ---
 
-## Languages covered
+## Available languages
 
-The table below lists all languages confirmed to have content on YouVersion and currently tracked by this project. Coverage was verified by probing Old Testament and New Testament probe verses for each version before scraping.
+**Ghanaian languages** are listed in the coverage table below. **Other
+("reference") languages** that can be used as the non-Ghanaian side of a
+parallel corpus:
+
+| Code | Language |
+|---|---|
+| `en` | English |
+| `fr` | French |
+| `es` | Spanish |
+| `pt` | Portuguese |
+| `de` | German |
+| `it` | Italian |
+| `ar` | Arabic |
+| `zh` | Chinese |
+| `sw` | Swahili |
+
+### Adding more reference languages
+
+The reference set is fully self-describing — no index and no code changes. Each
+cache is stored as `reference_caches/{Name}_{code}_v{id}.csv`, and the library
+learns the language straight from that filename on HuggingFace.
+
+To add one, find its YouVersion numeric version id (a full-Bible version works
+best), then:
+
+```bash
+# 1. cache it locally
+python scripts/fetch_reference_language.py --code ha --name Hausa --version 380
+
+# 2. push it to HuggingFace
+python scripts/push_dataset_to_hf.py
+```
+
+That's it — it's immediately selectable in `ghana_corpus.py`, with nothing to
+commit. (`reference_languages.csv` is just an optional catalog of common
+languages so they can be re-fetched by code; the library never reads it.)
+
+---
+
+## Ghanaian language coverage & contributing
+
+The table lists Ghanaian languages tracked by this project, the YouVersion
+versions they were built from, and the volunteers who curated them.
+
+# Language Assignments
 
 | Language | Code | Version IDs | Coverage | Volunteer | Status |
 |---|---|---|---|---|---|
@@ -50,69 +178,114 @@ The table below lists all languages confirmed to have content on YouVersion and 
 | Asante Twi | twi | 1461, 1861, 2094 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
 | Bassar Ntcham | bud | 2235 | OT + NT | [Kenneth Dotse](https://www.linkedin.com/in/kenneth-kwame-dotse/) | Assigned |
 | Bimoba | bim | 1748 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
-| Buli | bwu | 2176 | OT + NT | [Dyllis	Ofori-Attah](https://www.linkedin.com/in/dyllis-oforiattah/) | Assigned |
+| Buli | bwu | 2176 | OT + NT | [Dyllis Ofori-Attah](https://www.linkedin.com/in/dyllis-oforiattah/) | Assigned |
 | Dagaare | dga | 4573 | OT + NT | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
 | Dagbani | dag | 2263, 2264 | OT + NT | [Naporo Alhassan A.Ganiw](https://www.linkedin.com/in/naporo-alhassan-abdul-ganiw-986982319) | Assigned |
 | Dangme | ada | 2265 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | ✅ Done |
 | Deg | mzw | 2012 | OT + NT | [Timothy Aguya Akasiya](https://www.linkedin.com/in/timothy-aguya-akasiya/) | Assigned |
-| Ewe | ewe | 1613, 2259, 3306 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | Assigned |
-| Fante | fat | 2913, 2914 | OT + NT | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
-| Fulfulde; Maasina | ffm | 3093 | OT + NT | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | Assigned |
-| Ga | gaa | 2708, 2712 | OT + NT | [Maxwell Sam](https://www.linkedin.com/in/maxwell-sam-42133044/) | Assigned |
-| Gonja | gjn | 1729 | OT + NT | [Bernard Adjei](https://www.linkedin.com/in/bernardmarfoadjei/) | Assigned |
-| Hausa | hau | 71, 1614 | OT + NT | — | Not started |
-| Kasem | xsm | 3661 | OT + NT | — | Not started |
-| Konkomba | xon | 1150 | OT + NT | — | Not started |
-| Kusaal | kus | 3752 | OT + NT | — | Not started |
-| Lelemi | lef | 2442 | OT + NT | — | Not started |
-| Nzema | nzi | 2717 | OT + NT | — | Not started |
-| Sehwi | sfw | 2710 | OT + NT | — | Not started |
-| Sisaala; Tumulung | sil | 2553 | OT + NT | — | Not started |
-| Tem | kdh | 1384 | OT + NT | — | Not started |
-| Vagla | vag | 1938 | OT + NT | — | Not started |
-| Abron | abr | 3971 | NT only | — | Not started |
-| Anufo | cko | 2168 | NT only | — | Not started |
-| Anyin | any | 1731 | NT only | — | Not started |
-| Avatime | avn | 1982 | NT only | — | Not started |
-| Bimoba | bim | 1838 | NT only | — | Not started |
+| Ewe | ewe | 1613, 2259, 3306 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | ✅ Done |
+| Fante | fat | 2913, 2914 | OT + NT | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Fulfulde; Maasina | ffm | 3093 | OT + NT | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Ga | gaa | 2708, 2712 | OT + NT | [Maxwell Sam](https://www.linkedin.com/in/maxwell-sam-42133044/) | ✅ Done |
+| Gonja | gjn | 1729 | OT + NT | [Bernard Adjei](https://www.linkedin.com/in/bernardmarfoadjei/) | ✅ Done |
+| Hausa | hau | 71, 1614 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | Assigned |
+| Kasem | xsm | 3661 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | Assigned |
+| Konkomba | xon | 1150 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | Assigned |
+| Kusaal | kus | 3752 | OT + NT | [Chantelle Amoako-Atta](https://www.linkedin.com/in/chantelleaa/) | Assigned |
+| Lelemi | lef | 2442 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
+| Nzema | nzi | 2717 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
+| Sehwi | sfw | 2710 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
+| Sisaala; Tumulung | sil | 2553 | OT + NT | [Onesimus Addo Appiah](https://www.linkedin.com/in/onesimus-appiah/) | Assigned |
+| Tem | kdh | 1384 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
+| Vagla | vag | 1938 | OT + NT | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
+| Abron | abr | 3971 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | ✅ Done |
+| Anufo | cko | 2168 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
+| Anyin | any | 1731 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
+| Avatime | avn | 1982 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
+| Bimoba | bim | 1838 | NT only | [Isaac Donkoh](https://www.linkedin.com/in/isaac-kojo-donkoh) | ✅ Done |
 | Birifor; Southern | biv | 2148 | NT only | [Mich-Seth Owusu](https://linkedin.com/in/mich-seth-owusu) | ✅ Done |
-| Bissa | bib | 1751 | NT only | — | Not started |
-| Chumburung | ncu | 437 | NT only | — | Not started |
-| Dagaare | dga | 2268 | NT only | — | Not started |
-| Dangme | ada | 2322 | NT only | — | Not started |
-| Fulfulde; Maasina | ffm | 1175 | NT only | — | Not started |
-| Gikyode | acd | 1741 | NT only | — | Not started |
-| Hanga | hag | 1499 | OT only | — | Not started |
-| Kabiye | kbp | 555 | NT only | — | Not started |
-| Kasem | xsm | 1303 | NT only | — | Not started |
-| Konkomba | xon | 1460 | NT only | — | Not started |
-| Konni | kma | 2421 | NT only | — | Not started |
-| Mampruli | maw | 1784 | NT only | — | Not started |
-| Nawuri | naw | 1836 | NT only | — | Not started |
-| Ninkare | gur | 1323, 3194 | NT only | — | Not started |
-| Nkonya | nko | 255 | NT only | — | Not started |
-| Ntrubo | ntr | 1795 | NT only | — | Not started |
-| Nyangbo | nyb | 4674 | OT only | — | Not started |
-| Nzema | nzi | 4529 | NT only | — | Not started |
-| Paasaal | sig | 1978 | NT only | — | Not started |
-| Sehwi | sfw | 4630 | NT only | — | Not started |
-| Selee | snw | 1796, 4728 | NT / OT | — | Not started |
-| Sekpele | lip | 1773 | NT only | — | Not started |
-| Siwu | akp | 1738 | NT only | — | Not started |
-| Tafi | tcd | 3070 | NT only | — | Not started |
-| Tampulma | tpm | 1804 | NT only | — | Not started |
-| Tuwuli | bov | 1752 | NT only | — | Not started |
+| Bissa | bib | 1751 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Chumburung | ncu | 437 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Dagaare | dga | 2268 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | ✅ Done |
+| Dangme | ada | 2322 | NT only | [Foster (Buabeng) Dompreh](https://www.linkedin.com/in/foster-dompreh/) | Assigned |
+| Fulfulde; Maasina | ffm | 1175 | NT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
+| Gikyode | acd | 1741 | NT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
+| Hanga | hag | 1499 | OT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
+| Kabiye | kbp | 555 | NT only | [Baffoe Nicholas](https://www.linkedin.com/in/baffoe-nicholas-3b8159267) | Assigned |
+| Kasem | xsm | 1303 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Konkomba | xon | 1460 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Konni | kma | 2421 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Mampruli | maw | 1784 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Nawuri | naw | 1836 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Ninkare | gur | 1323, 3194 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Nkonya | nko | 255 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Ntrubo | ntr | 1795 | NT only | [Saani Mustapha Deishini](https://www.linkedin.com/in/saani-mustapha-3747b925a/) | ✅ Done |
+| Nyangbo | nyb | 4674 | OT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Nzema | nzi | 4529 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Paasaal | sig | 1978 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Sehwi | sfw | 4630 | NT only | [Tyra Koranteng](https://www.linkedin.com/in/tyrakoranteng46/) | Assigned |
+| Selee | snw | 1796, 4728 | NT / OT | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Sekpele | lip | 1773 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Siwu | akp | 1738 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tafi | tcd | 3070 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tampulma | tpm | 1804 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
+| Tuwuli | bov | 1752 | NT only | [Prince Alhassan](https://www.linkedin.com/in/alhassan-prince) | Assigned |
 
-Any language with a YouVersion Bible translation can be added by including its version ID in the versions CSV. To volunteer for a language, open an issue or reach out to the Ghana NLP Community.
+To volunteer for a language, open an issue or reach out to the Ghana NLP
+Community.
+
+### Maintainer tooling (building the datasets)
+
+The Ghanaian datasets in `bible_parallel_text_datasets/` were produced by the
+scripts in this repo and are committed for direct use — **regular users do not
+need to run them.** For maintainers and volunteers extending coverage:
+
+- `youversion_parallel_text_builder.py` — builds a Ghanaian-language dataset
+  from a YouVersion version id.
+- `scripts/scan_viable_versions.py` — probes which versions actually have
+  content before scraping.
+- `scripts/fetch_reference_language.py` — caches a reference language (see
+  *Adding more reference languages* above).
+- `scripts/push_dataset_to_hf.py` — publishes data to the
+  `ghananlpcommunity/ghana-corpus` dataset. By default it **appends only new
+  files** (run `--dry-run` to preview, `--sync` to also re-upload changed
+  files). Once a file is on HuggingFace, `ghana_corpus.py` picks it up
+  automatically on its next run.
+- `scripts/build_and_push_parallel_dataset.py` — merges and publishes a
+  curated dataset to HuggingFace (reads `HF_TOKEN` from the environment).
+
+Typical workflow for extending coverage:
+
+```bash
+# build a new Ghanaian dataset (or fetch a new reference language), then:
+python scripts/push_dataset_to_hf.py --dry-run   # see what's new
+python scripts/push_dataset_to_hf.py             # append it to HF
+```
+
+---
+
+## Data source
+
+Verse text comes from public **Bible translations**, which are among the best
+naturally-occurring sources of sentence-aligned parallel text for low-resource
+languages.
+
+> The non-English reference languages were retrieved from
+> [YouVersion](https://www.bible.com) (bible.com). Please review YouVersion's
+> terms of service before publishing or redistributing derived data.
 
 ---
 
 ## License
 
-Dataset content is sourced from YouVersion. Please review YouVersion's terms of service before publishing or distributing scraped data. Code in this repository is released under the MIT License.
+Code in this repository is released under the MIT License. Dataset content is
+derived from third-party Bible translations; review the source's terms before
+publishing or distributing.
 
 ---
 
 ## Acknowledgements
 
-Built by the [Ghana NLP Community](https://huggingface.co/ghananlpcommunity). If you use this data in research, please cite the community and acknowledge YouVersion as the source.
+Built by the [Ghana NLP Community](https://huggingface.co/ghananlpcommunity).
+If you use this data in research, please cite the community and acknowledge the
+underlying Bible-translation sources.
